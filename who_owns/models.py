@@ -104,29 +104,6 @@ class Address(models.Model):
         db_table = "address"
         managed = True
 
-
-class Site(models.Model):
-    id = models.IntegerField(primary_key=True)
-    fy = models.IntegerField()
-    muni = models.ForeignKey(Municipality, null=True, on_delete=models.DO_NOTHING)
-    ls_date = models.DateField(null=True)
-    ls_price = models.IntegerField(null=True)
-    bld_area = models.IntegerField(null=True)
-    res_area = models.IntegerField(null=True)
-    units = models.IntegerField(null=False)
-    bld_val = models.IntegerField()
-    lnd_val = models.IntegerField()
-    use_code = models.CharField(null=False, max_length=20)
-    luc = models.CharField(null=False, max_length=10)
-    ooc = models.BooleanField()
-    condo = models.BooleanField()
-    address = models.ForeignKey(Address, null=True, on_delete=models.DO_NOTHING)
-    
-    class Meta:
-        managed = True 
-        db_table = "site"
-
-
 class EvictorType(models.Model):
     name = models.CharField(blank=False, null=True, unique=True, max_length=300)
 
@@ -162,26 +139,6 @@ class Judge(models.Model):
             person_instance.roles.add(judge_role)
             self.person = person_instance
         super().save(*args, **kwargs)
-
-
-class MetaCorp(models.Model):
-    """
-    'Owner' company. Likely arrived at manually. ID is network cluster
-    """
-    id = models.CharField(primary_key=True, max_length=100, db_index=True)
-    name = models.CharField(blank=True, null=True, max_length=500)
-    val = models.IntegerField(blank=True, null=True)
-    evictor_type = models.ForeignKey(EvictorType, null=True, on_delete=models.DO_NOTHING)
-    prop_count = models.IntegerField(null=True)
-    unit_count = models.FloatField(null=True)
-    area = models.IntegerField(null=True)
-    units_per_prop = models.FloatField(null=True)
-    val_per_prop = models.FloatField(null=True)
-    val_per_area = models.FloatField(null=True)
-    company_count = models.IntegerField(null=True)
-    
-    class Meta:
-        db_table = "metacorps_network"
 
 class DocketMeta(models.Model):
     docket = models.TextField(primary_key=True, db_index=True)
@@ -379,21 +336,6 @@ class Judgment(models.Model):
             ("docket", "date", "type", "method", "for_field", "against"),
         )
 
-class Owner(models.Model):
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    name = models.CharField(blank=True, null=True, max_length=500)
-    inst = models.BooleanField(null=True)
-    trust = models.BooleanField(null=True)
-    trustees = models.BooleanField(null=True)
-    address = models.ForeignKey(Address, null=True, blank=True, on_delete=models.DO_NOTHING)
-    cosine_group = models.CharField(null=True, blank=True, max_length=250)
-    metacorp = models.ForeignKey(MetaCorp, null=True, blank=True, on_delete=models.DO_NOTHING, help_text="network_group in original data")
-    site = models.ForeignKey(Site, null=True, blank=True, on_delete=models.DO_NOTHING)
-
-    class Meta:
-        managed = True
-        db_table = "owner"
-
 
 class Company(models.Model):
     """
@@ -405,11 +347,7 @@ class Company(models.Model):
     landlord_type = models.ForeignKey(LandlordType, null=True, on_delete=models.DO_NOTHING)
     company_type = models.ForeignKey(CompanyType, null=True, on_delete=models.DO_NOTHING)
     person = models.ManyToManyField(Person, related_name="people")
-    owner = models.ManyToManyField(Owner, related_name="owners")
     address = models.ForeignKey(Address, null=True, on_delete=models.DO_NOTHING)
-    metacorp = models.ForeignKey(
-        MetaCorp, blank=True, null=True, on_delete=models.DO_NOTHING
-    )
 
     def __str__(self):
         return str({self.id: self.name})
